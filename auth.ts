@@ -5,9 +5,11 @@ import { z } from "zod";
 import { authConfig } from "@/auth.config";
 import { db } from "@/lib/db";
 
-// Formato esperado dos dados de login.
+// Formato esperado dos dados de login. O "email" aqui e apenas o
+// identificador de login (pode ser "tania@candy"), por isso nao exigimos
+// formato de e-mail completo — so que nao esteja vazio.
 const loginSchema = z.object({
-  email: z.email(),
+  email: z.string().min(1),
   password: z.string().min(1),
 });
 
