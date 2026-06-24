@@ -19,14 +19,28 @@ model User {
 }
 
 model Ingredient {
-  id              String   @id @default(cuid())
+  id              String     @id @default(cuid())
   name            String
   unit            String // "kg", "g", "l", "ml", "un"
-  quantityCurrent Float    @default(0)
-  quantityMin     Float    @default(0)
-  unitCost        Decimal  @default(0) @db.Decimal(10, 2) // custo por unidade (R$)
-  updatedAt       DateTime @updatedAt
-  createdAt       DateTime @default(now())
+  quantityCurrent Float      @default(0)
+  quantityMin     Float      @default(0)
+  unitCost        Decimal    @default(0) @db.Decimal(10, 2) // custo por unidade (R$)
+  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime   @default(now())
+  purchases       Purchase[]
+}
+
+// Historico permanente de compras de ingredientes (alimenta o relatorio).
+// O valor gasto fica registrado aqui e nunca diminui quando o estoque acaba.
+model Purchase {
+  id             String      @id @default(cuid())
+  ingredient     Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+  ingredientId   String?
+  ingredientName String // snapshot do nome, mantido mesmo se o ingrediente for excluido
+  quantity       Float
+  unitCost       Decimal     @db.Decimal(10, 2)
+  amount         Decimal     @db.Decimal(10, 2) // quantity * unitCost
+  createdAt      DateTime    @default(now())
 }
 
 model Product {

@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import {
   createIngredient,
   updateIngredient,
-  adjustQuantity,
+  buyStock,
+  consumeStock,
   deleteIngredient,
   type ActionResult,
 } from "@/app/(dashboard)/estoque/actions";
@@ -337,23 +338,25 @@ export function StockManager({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() =>
-                            run(() => adjustQuantity({ id: i.id, delta: -1 }))
+                            run(() => consumeStock({ id: i.id, quantity: 1 }))
                           }
                           disabled={isPending}
-                          title="Diminuir 1"
-                          className="rounded-lg border border-candy-pink p-2 text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
+                          title="Usei 1 (baixa do estoque)"
+                          className="flex items-center gap-1 rounded-lg border border-candy-pink px-2 py-2 text-sm text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
                         >
                           <MinusIcon className="h-5 w-5" />
+                          <span className="hidden sm:inline">usei</span>
                         </button>
                         <button
                           onClick={() =>
-                            run(() => adjustQuantity({ id: i.id, delta: 1 }))
+                            run(() => buyStock({ id: i.id, quantity: 1 }))
                           }
                           disabled={isPending}
-                          title="Aumentar 1"
-                          className="rounded-lg border border-candy-pink p-2 text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
+                          title="Comprei 1 (entra no estoque e conta no relatório)"
+                          className="flex items-center gap-1 rounded-lg border border-candy-pink px-2 py-2 text-sm text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
                         >
                           <PlusIcon className="h-5 w-5" />
+                          <span className="hidden sm:inline">comprei</span>
                         </button>
                         <button
                           onClick={() => startEdit(i)}

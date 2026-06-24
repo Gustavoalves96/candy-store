@@ -3,18 +3,13 @@ import { formatBRL } from "@/lib/format";
 import { MoneyIcon, StockIcon } from "@/components/icons";
 
 export default async function RelatoriosPage() {
-  const [vendasAgg, ingredients] = await Promise.all([
+  const [vendasAgg, comprasAgg] = await Promise.all([
     db.sale.aggregate({ _sum: { total: true } }),
-    db.ingredient.findMany({
-      select: { unitCost: true, quantityCurrent: true },
-    }),
+    db.purchase.aggregate({ _sum: { amount: true } }),
   ]);
 
   const recebidoVendas = Number(vendasAgg._sum.total ?? 0);
-  const gastoIngredientes = ingredients.reduce(
-    (acc, i) => acc + Number(i.unitCost) * i.quantityCurrent,
-    0,
-  );
+  const gastoIngredientes = Number(comprasAgg._sum.amount ?? 0);
   const saldo = recebidoVendas - gastoIngredientes;
 
   const maxVal = Math.max(recebidoVendas, gastoIngredientes, 1);
@@ -25,8 +20,8 @@ export default async function RelatoriosPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-1 text-3xl font-bold text-candy-brown">Relatórios</h1>
       <p className="mb-6 text-sm text-candy-brown-light">
-        Comparação entre o total recebido em vendas e o valor investido nos
-        ingredientes que você tem em estoque agora.
+        Comparação entre o total recebido em vendas e o total gasto comprando
+        ingredientes ao longo do tempo.
       </p>
 
       {/* Cards */}
@@ -107,8 +102,9 @@ export default async function RelatoriosPage() {
       </div>
 
       <p className="mt-4 text-xs text-candy-brown-light">
-        Observação: as vendas somam todo o histórico; os ingredientes usam o
-        valor do estoque atual (não há registro de compras anteriores).
+        Observação: o gasto em ingredientes vem do histórico de compras (cada vez
+        que você cadastra um ingrediente com quantidade ou clica em &quot;comprei&quot;).
+        Usar o estoque não diminui esse valor.
       </p>
     </div>
   );

@@ -24,6 +24,15 @@ const ingredientSchema = z.object({
     .max(99999999, "Custo muito alto."),
 });
 
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function revalidateAll() {
+  revalidatePath("/estoque");
+  revalidatePath("/relatorios");
+  revalidatePath("/");
+}
+
 export async function createIngredient(input: {
   name: string;
   unit: string;
@@ -36,8 +45,22 @@ export async function createIngredient(input: {
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
-  await db.ingredient.create({ data: parsed.data });
-  revalidatePath("/estoque");
+  const created = await db.ingredient.create({ data: parsed.data });
+
+  // A quantidade inicial cadastrada conta como uma compra (gasto permanente).
+  if (created.quantityCurrent > 0) {
+    await db.purchase.create({
+      data: {
+        ingredientId: created.id,
+        ingredientName: created.name,
+        quantity: created.quantityCurrent,
+        unitCost: parsed.data.unitCost,
+        amount: round2(created.quantityCurrent * parsed.data.unitCost),
+      },
+    });
+  }
+
+  revalidateAll();
   return { ok: true };
 }
 
@@ -54,43 +77,81 @@ export async function updateIngredient(input: {
     return { ok: false, error: parsed.error.issues[0].message };
   }
 
+  // Editar e uma correcao manual: ajusta o estoque, mas NAO mexe no relatorio.
   await db.ingredient.update({
     where: { id: input.id },
     data: parsed.data,
   });
-  revalidatePath("/estoque");
+  revalidateAll();
   return { ok: true };
 }
 
-// Ajusta a quantidade atual por um delta (+/-), sem deixar ficar negativa.
-export async function adjustQuantity(input: {
+// "Comprei mais": aumenta o estoque E registra o gasto no relatorio.
+export async function buyStock(input: {
   id: string;
-  delta: number;
+  quantity: number;
 }): Promise<ActionResult> {
-  const ingredient = await db.ingredient.findUnique({
-    where: { id: input.id },
-  });
+  const quantity = round3(input.quantity);
+  if (quantity <= 0) {
+    return { ok: false, error: "A quantidade comprada deve ser maior que zero." };
+  }
+
+  const ingredient = await db.ingredient.findUnique({ where: { id: input.id } });
   if (!ingredient) {
     return { ok: false, error: "Ingrediente não encontrado." };
   }
 
-  const novaQtd = Math.max(
-    0,
-    Math.round((ingredient.quantityCurrent + input.delta) * 1000) / 1000,
-  );
+  const unitCost = Number(ingredient.unitCost);
+  const novaQtd = round3(ingredient.quantityCurrent + quantity);
 
   await db.ingredient.update({
     where: { id: input.id },
     data: { quantityCurrent: novaQtd },
   });
-  revalidatePath("/estoque");
+  await db.purchase.create({
+    data: {
+      ingredientId: ingredient.id,
+      ingredientName: ingredient.name,
+      quantity,
+      unitCost,
+      amount: round2(quantity * unitCost),
+    },
+  });
+
+  revalidateAll();
+  return { ok: true };
+}
+
+// "Usei": baixa o estoque (sem deixar negativo) e NAO mexe no relatorio.
+export async function consumeStock(input: {
+  id: string;
+  quantity: number;
+}): Promise<ActionResult> {
+  const quantity = round3(input.quantity);
+  if (quantity <= 0) {
+    return { ok: false, error: "A quantidade usada deve ser maior que zero." };
+  }
+
+  const ingredient = await db.ingredient.findUnique({ where: { id: input.id } });
+  if (!ingredient) {
+    return { ok: false, error: "Ingrediente não encontrado." };
+  }
+
+  const novaQtd = Math.max(0, round3(ingredient.quantityCurrent - quantity));
+  await db.ingredient.update({
+    where: { id: input.id },
+    data: { quantityCurrent: novaQtd },
+  });
+
+  revalidateAll();
   return { ok: true };
 }
 
 export async function deleteIngredient(input: {
   id: string;
 }): Promise<ActionResult> {
+  // As compras ficam no historico (ingredientId vira null), preservando o relatorio.
   await db.ingredient.delete({ where: { id: input.id } });
-  revalidatePath("/estoque");
+  revalidateAll();
   return { ok: true };
 }
