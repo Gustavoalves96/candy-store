@@ -25,6 +25,7 @@ export default async function DashboardLayout({
             width={44}
             height={44}
             className="rounded-full"
+            unoptimized
             priority
           />
           <span className="text-xl font-bold text-candy-brown">

@@ -12,6 +12,7 @@ export default function LoginPage() {
             width={120}
             height={120}
             className="mb-3 rounded-full"
+            unoptimized
             priority
           />
           <h1 className="text-2xl font-bold text-candy-brown">Candy Store</h1>
