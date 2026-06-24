@@ -24,6 +24,7 @@ model Ingredient {
   unit            String // "kg", "g", "l", "ml", "un"
   quantityCurrent Float    @default(0)
   quantityMin     Float    @default(0)
+  unitCost        Decimal  @default(0) @db.Decimal(10, 2) // custo por unidade (R$)
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
 }

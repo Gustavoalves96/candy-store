@@ -12,6 +12,7 @@ export default async function EstoquePage() {
     unit: i.unit,
     quantityCurrent: i.quantityCurrent,
     quantityMin: i.quantityMin,
+    unitCost: Number(i.unitCost),
   }));
 
   return (

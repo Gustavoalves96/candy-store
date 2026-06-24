@@ -18,6 +18,10 @@ const ingredientSchema = z.object({
     .number()
     .min(0, "A quantidade mínima não pode ser negativa.")
     .max(9999999, "Quantidade muito alta."),
+  unitCost: z
+    .number()
+    .min(0, "O custo não pode ser negativo.")
+    .max(99999999, "Custo muito alto."),
 });
 
 export async function createIngredient(input: {
@@ -25,6 +29,7 @@ export async function createIngredient(input: {
   unit: string;
   quantityCurrent: number;
   quantityMin: number;
+  unitCost: number;
 }): Promise<ActionResult> {
   const parsed = ingredientSchema.safeParse(input);
   if (!parsed.success) {
@@ -42,6 +47,7 @@ export async function updateIngredient(input: {
   unit: string;
   quantityCurrent: number;
   quantityMin: number;
+  unitCost: number;
 }): Promise<ActionResult> {
   const parsed = ingredientSchema.safeParse(input);
   if (!parsed.success) {

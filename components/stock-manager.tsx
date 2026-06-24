@@ -8,13 +8,20 @@ import {
   deleteIngredient,
   type ActionResult,
 } from "@/app/(dashboard)/estoque/actions";
-import { UNITS, formatQty, parseQuantity } from "@/lib/format";
+import {
+  UNITS,
+  formatQty,
+  formatBRL,
+  parseQuantity,
+  parsePrice,
+} from "@/lib/format";
 import {
   PlusIcon,
   MinusIcon,
   PencilIcon,
   TrashIcon,
   AlertIcon,
+  MoneyIcon,
 } from "@/components/icons";
 
 export type IngredientDTO = {
@@ -23,6 +30,7 @@ export type IngredientDTO = {
   unit: string;
   quantityCurrent: number;
   quantityMin: number;
+  unitCost: number;
 };
 
 export function StockManager({
@@ -38,6 +46,7 @@ export function StockManager({
   const [unit, setUnit] = useState<string>("kg");
   const [current, setCurrent] = useState("");
   const [min, setMin] = useState("");
+  const [cost, setCost] = useState("");
 
   // Edicao inline
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -45,9 +54,12 @@ export function StockManager({
   const [editUnit, setEditUnit] = useState("kg");
   const [editCurrent, setEditCurrent] = useState("");
   const [editMin, setEditMin] = useState("");
+  const [editCost, setEditCost] = useState("");
 
-  const faltando = ingredients.filter(
-    (i) => i.quantityCurrent < i.quantityMin,
+  const faltando = ingredients.filter((i) => i.quantityCurrent < i.quantityMin);
+  const totalEstoque = ingredients.reduce(
+    (acc, i) => acc + i.unitCost * i.quantityCurrent,
+    0,
   );
 
   function run(action: () => Promise<ActionResult>, onOk?: () => void) {
@@ -63,9 +75,11 @@ export function StockManager({
     e.preventDefault();
     const atual = parseQuantity(current || "0");
     const minimo = parseQuantity(min || "0");
+    const custo = parsePrice(cost || "0");
     if (!name.trim()) return setMessage("Informe o nome do ingrediente.");
     if (atual === null) return setMessage("Quantidade atual inválida.");
     if (minimo === null) return setMessage("Quantidade mínima inválida.");
+    if (custo === null) return setMessage("Custo inválido (ex: 5,00).");
 
     run(
       () =>
@@ -74,12 +88,14 @@ export function StockManager({
           unit,
           quantityCurrent: atual,
           quantityMin: minimo,
+          unitCost: custo,
         }),
       () => {
         setName("");
         setUnit("kg");
         setCurrent("");
         setMin("");
+        setCost("");
       },
     );
   }
@@ -90,15 +106,18 @@ export function StockManager({
     setEditUnit(i.unit);
     setEditCurrent(String(i.quantityCurrent).replace(".", ","));
     setEditMin(String(i.quantityMin).replace(".", ","));
+    setEditCost(String(i.unitCost).replace(".", ","));
     setMessage(null);
   }
 
   function handleSaveEdit(id: string) {
     const atual = parseQuantity(editCurrent || "0");
     const minimo = parseQuantity(editMin || "0");
+    const custo = parsePrice(editCost || "0");
     if (!editName.trim()) return setMessage("Informe o nome do ingrediente.");
     if (atual === null) return setMessage("Quantidade atual inválida.");
     if (minimo === null) return setMessage("Quantidade mínima inválida.");
+    if (custo === null) return setMessage("Custo inválido (ex: 5,00).");
 
     run(
       () =>
@@ -108,6 +127,7 @@ export function StockManager({
           unit: editUnit,
           quantityCurrent: atual,
           quantityMin: minimo,
+          unitCost: custo,
         }),
       () => setEditingId(null),
     );
@@ -118,15 +138,24 @@ export function StockManager({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Total em estoque */}
+      <div className="flex items-center gap-3 rounded-2xl border-2 border-candy-pink bg-white p-5">
+        <MoneyIcon className="h-8 w-8 text-candy-brown-light" />
+        <div>
+          <p className="text-sm text-candy-brown-light">Total em estoque</p>
+          <p className="text-2xl font-bold text-candy-brown">
+            {formatBRL(totalEstoque)}
+          </p>
+        </div>
+      </div>
+
       {/* Alerta de itens faltando */}
       {faltando.length > 0 && (
         <div className="flex items-start gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-red-700">
           <AlertIcon className="mt-0.5 h-6 w-6 shrink-0" />
           <div>
             <p className="font-semibold">Faltando no estoque</p>
-            <p className="text-sm">
-              {faltando.map((i) => i.name).join(", ")}
-            </p>
+            <p className="text-sm">{faltando.map((i) => i.name).join(", ")}</p>
           </div>
         </div>
       )}
@@ -139,8 +168,8 @@ export function StockManager({
         <h2 className="mb-3 text-lg font-semibold text-candy-brown">
           Novo ingrediente
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <label className="col-span-2 flex flex-col gap-1 sm:col-span-2">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+          <label className="col-span-2 flex flex-col gap-1">
             <span className="text-sm font-medium text-candy-brown">Nome</span>
             <input
               value={name}
@@ -183,6 +212,18 @@ export function StockManager({
               className={inputCls}
             />
           </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-candy-brown">
+              Custo (R$)
+            </span>
+            <input
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+              inputMode="decimal"
+              placeholder="por unidade"
+              className={inputCls}
+            />
+          </label>
         </div>
         <button
           type="submit"
@@ -211,6 +252,7 @@ export function StockManager({
             {ingredients.map((i) => {
               const baixo = i.quantityCurrent < i.quantityMin;
               const editando = editingId === i.id;
+              const valorItem = i.unitCost * i.quantityCurrent;
 
               return (
                 <li
@@ -219,7 +261,7 @@ export function StockManager({
                 >
                   {editando ? (
                     <div className="flex flex-col gap-3">
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
                         <input
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
@@ -241,12 +283,21 @@ export function StockManager({
                           onChange={(e) => setEditCurrent(e.target.value)}
                           inputMode="decimal"
                           className={inputCls}
+                          title="Quantidade atual"
                         />
                         <input
                           value={editMin}
                           onChange={(e) => setEditMin(e.target.value)}
                           inputMode="decimal"
                           className={inputCls}
+                          title="Quantidade mínima"
+                        />
+                        <input
+                          value={editCost}
+                          onChange={(e) => setEditCost(e.target.value)}
+                          inputMode="decimal"
+                          className={inputCls}
+                          title="Custo por unidade (R$)"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -271,11 +322,15 @@ export function StockManager({
                         <p className="font-medium text-candy-brown">{i.name}</p>
                         <p
                           className={`text-sm ${
-                            baixo ? "font-medium text-red-600" : "text-candy-brown-light"
+                            baixo
+                              ? "font-medium text-red-600"
+                              : "text-candy-brown-light"
                           }`}
                         >
                           {formatQty(i.quantityCurrent)} {i.unit} · mín{" "}
-                          {formatQty(i.quantityMin)} {i.unit}
+                          {formatQty(i.quantityMin)} {i.unit} ·{" "}
+                          {formatBRL(i.unitCost)}/{i.unit} ={" "}
+                          {formatBRL(valorItem)}
                         </p>
                       </div>
 

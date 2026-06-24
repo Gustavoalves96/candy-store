@@ -120,6 +120,15 @@ export function HistoryIcon(props: IconProps) {
   );
 }
 
+export function ChartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 4v16h16" />
+      <path d="M8 16v-4M12 16V8M16 16v-6" />
+    </Icon>
+  );
+}
+
 export function MoneyIcon(props: IconProps) {
   return (
     <Icon {...props}>

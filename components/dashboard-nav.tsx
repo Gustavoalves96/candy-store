@@ -8,6 +8,7 @@ import {
   SalesIcon,
   StockIcon,
   HistoryIcon,
+  ChartIcon,
 } from "@/components/icons";
 
 const links: {
@@ -19,6 +20,7 @@ const links: {
   { href: "/vendas", label: "Vendas", Icon: SalesIcon },
   { href: "/historico", label: "Histórico", Icon: HistoryIcon },
   { href: "/estoque", label: "Estoque", Icon: StockIcon },
+  { href: "/relatorios", label: "Relatórios", Icon: ChartIcon },
 ];
 
 export function DashboardNav() {
