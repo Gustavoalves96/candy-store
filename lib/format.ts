@@ -24,6 +24,25 @@ export function parsePrice(input: string): number | null {
   return Math.round(value * 100) / 100;
 }
 
+// Unidades de medida aceitas para ingredientes.
+export const UNITS = ["kg", "g", "l", "ml", "un"] as const;
+export type Unit = (typeof UNITS)[number];
+
+// Converte texto de quantidade ("1,5" ou "1.5") para numero (ate 3 casas).
+export function parseQuantity(input: string): number | null {
+  const normalized = input.trim().replace(/\s/g, "").replace(",", ".");
+  if (normalized === "") return null;
+  const value = Number(normalized);
+  if (!Number.isFinite(value)) return null;
+  return Math.round(value * 1000) / 1000;
+}
+
+// Formata uma quantidade no padrao pt-BR: 1.5 -> "1,5", 2 -> "2".
+export function formatQty(value: number | string): string {
+  const n = typeof value === "number" ? value : Number(value);
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 }).format(n);
+}
+
 // Data/hora no fuso de Sao Paulo: "24/06/2026 14:30"
 export function formatDateTimeBR(date: Date): string {
   return new Intl.DateTimeFormat("pt-BR", {
