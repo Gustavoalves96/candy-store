@@ -1,0 +1,57 @@
+// Schema do Candy Store — sistema de estoque e vendas.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Ingredient {
+  id              String   @id @default(cuid())
+  name            String
+  unit            String // "kg", "g", "l", "ml", "un"
+  quantityCurrent Float    @default(0)
+  quantityMin     Float    @default(0)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+}
+
+model Product {
+  id        String     @id @default(cuid())
+  name      String
+  price     Decimal    @db.Decimal(10, 2)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  saleItems SaleItem[]
+}
+
+model Sale {
+  id           String     @id @default(cuid())
+  customerName String
+  total        Decimal    @db.Decimal(10, 2)
+  createdAt    DateTime   @default(now())
+  items        SaleItem[]
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+}
