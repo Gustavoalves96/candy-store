@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { SVGProps } from "react";
-import { HomeIcon, SalesIcon, StockIcon } from "@/components/icons";
+import {
+  HomeIcon,
+  SalesIcon,
+  StockIcon,
+  HistoryIcon,
+} from "@/components/icons";
 
 const links: {
   href: string;
@@ -12,6 +17,7 @@ const links: {
 }[] = [
   { href: "/", label: "Painel", Icon: HomeIcon },
   { href: "/vendas", label: "Vendas", Icon: SalesIcon },
+  { href: "/historico", label: "Histórico", Icon: HistoryIcon },
   { href: "/estoque", label: "Estoque", Icon: StockIcon },
 ];
 

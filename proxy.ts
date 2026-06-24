@@ -7,6 +7,9 @@ import { authConfig } from "@/auth.config";
 export default NextAuth(authConfig).auth;
 
 export const config = {
-  // Roda em todas as rotas, menos arquivos estaticos, imagens e as rotas da API de auth.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Roda em todas as rotas, menos a API, recursos internos do Next, o favicon
+  // e arquivos estaticos (imagens) — assim o logo carrega mesmo deslogado.
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)",
+  ],
 };

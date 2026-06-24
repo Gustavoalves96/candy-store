@@ -1,24 +1,14 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { SaleForm } from "@/components/sale-form";
-import { CalendarIcon, MoneyIcon } from "@/components/icons";
-import {
-  formatBRL,
-  formatDateTimeBR,
-  startOfMonthSP,
-  startOfTodaySP,
-} from "@/lib/format";
+import { CalendarIcon, MoneyIcon, HistoryIcon } from "@/components/icons";
+import { formatBRL, startOfMonthSP, startOfTodaySP } from "@/lib/format";
 
 export default async function VendasPage() {
-  const [activeProducts, sales, somaHoje, somaMes] = await Promise.all([
+  const [activeProducts, somaHoje, somaMes] = await Promise.all([
     db.product.findMany({
       where: { active: true },
       orderBy: { name: "asc" },
-    }),
-    db.sale.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      include: { items: true },
     }),
     db.sale.aggregate({
       _sum: { total: true },
@@ -79,45 +69,14 @@ export default async function VendasPage() {
       </h2>
       <SaleForm products={productOptions} />
 
-      {/* Historico */}
-      <h2 className="mb-3 mt-8 text-xl font-semibold text-candy-brown">
-        Histórico
-      </h2>
-      <div className="overflow-hidden rounded-2xl border-2 border-candy-pink bg-white">
-        {sales.length === 0 ? (
-          <p className="p-6 text-center text-candy-brown-light">
-            Nenhuma venda registrada ainda.
-          </p>
-        ) : (
-          <ul className="divide-y divide-candy-pink-light">
-            {sales.map((sale) => {
-              const qtdItens = sale.items.reduce(
-                (acc, i) => acc + i.quantity,
-                0,
-              );
-              return (
-                <li
-                  key={sale.id}
-                  className="flex items-center justify-between gap-4 p-4"
-                >
-                  <div>
-                    <p className="font-medium text-candy-brown">
-                      {sale.customerName}
-                    </p>
-                    <p className="text-sm text-candy-brown-light">
-                      {formatDateTimeBR(sale.createdAt)} · {qtdItens}{" "}
-                      {qtdItens === 1 ? "item" : "itens"}
-                    </p>
-                  </div>
-                  <span className="text-lg font-bold text-candy-brown">
-                    {formatBRL(sale.total)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      {/* Link para o historico completo */}
+      <Link
+        href="/historico"
+        className="mt-6 flex items-center justify-center gap-2 rounded-2xl border-2 border-candy-pink bg-white p-4 font-medium text-candy-brown hover:bg-candy-pink-light"
+      >
+        <HistoryIcon className="h-5 w-5" />
+        Ver histórico de vendas
+      </Link>
     </div>
   );
 }

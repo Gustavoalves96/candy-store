@@ -93,6 +93,16 @@ export function CalendarIcon(props: IconProps) {
   );
 }
 
+export function HistoryIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 12a8.5 8.5 0 1 1 2.49 6.01" />
+      <path d="M3.5 18v-4h4" />
+      <path d="M12 7.5V12l3 1.8" />
+    </Icon>
+  );
+}
+
 export function MoneyIcon(props: IconProps) {
   return (
     <Icon {...props}>
