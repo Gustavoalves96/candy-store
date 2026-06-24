@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { SVGProps } from "react";
+import { HomeIcon, SalesIcon, StockIcon } from "@/components/icons";
 
-const links = [
-  { href: "/", label: "Painel", icon: "🏠" },
-  { href: "/vendas", label: "Vendas", icon: "🧾" },
-  { href: "/estoque", label: "Estoque", icon: "📦" },
+const links: {
+  href: string;
+  label: string;
+  Icon: (props: SVGProps<SVGSVGElement>) => React.ReactElement;
+}[] = [
+  { href: "/", label: "Painel", Icon: HomeIcon },
+  { href: "/vendas", label: "Vendas", Icon: SalesIcon },
+  { href: "/estoque", label: "Estoque", Icon: StockIcon },
 ];
 
 export function DashboardNav() {
@@ -14,24 +20,21 @@ export function DashboardNav() {
 
   return (
     <nav className="flex gap-2 md:flex-col">
-      {links.map((link) => {
-        const active =
-          link.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(link.href);
+      {links.map(({ href, label, Icon }) => {
+        const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
         return (
           <Link
-            key={link.href}
-            href={link.href}
+            key={href}
+            href={href}
             className={`flex flex-1 items-center gap-2 rounded-xl px-4 py-3 text-base font-medium transition-colors md:flex-none ${
               active
                 ? "bg-candy-pink text-candy-brown"
                 : "text-candy-brown hover:bg-candy-pink-light"
             }`}
           >
-            <span aria-hidden>{link.icon}</span>
-            <span>{link.label}</span>
+            <Icon className="h-5 w-5 shrink-0" />
+            <span>{label}</span>
           </Link>
         );
       })}
