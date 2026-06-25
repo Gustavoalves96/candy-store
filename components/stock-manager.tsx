@@ -335,7 +335,7 @@ export function StockManager({
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1">
+                      <div className="ml-auto flex items-center gap-1">
                         <button
                           onClick={() =>
                             run(() => consumeStock({ id: i.id, quantity: 1 }))

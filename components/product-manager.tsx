@@ -164,7 +164,7 @@ export function ProductManager({ products }: { products: ProductDTO[] }) {
                   </>
                 ) : (
                   <>
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                       <p
                         className={`font-medium ${
                           p.active
@@ -174,41 +174,39 @@ export function ProductManager({ products }: { products: ProductDTO[] }) {
                       >
                         {p.name}
                       </p>
-                      {!p.active && (
-                        <span className="text-xs text-candy-brown-light">
-                          inativo
-                        </span>
-                      )}
+                      <p className="text-sm text-candy-brown-light">
+                        {formatBRL(p.price)}
+                        {!p.active && " · inativo"}
+                      </p>
                     </div>
-                    <span className="font-semibold text-candy-brown">
-                      {formatBRL(p.price)}
-                    </span>
-                    <button
-                      onClick={() => startEdit(p)}
-                      title="Editar"
-                      className="rounded-lg p-2 text-candy-brown hover:bg-candy-pink-light"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        run(() =>
-                          toggleProductActive({ id: p.id, active: !p.active }),
-                        )
-                      }
-                      disabled={isPending}
-                      className="rounded-lg border border-candy-pink px-3 py-2 text-sm text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
-                    >
-                      {p.active ? "Desativar" : "Ativar"}
-                    </button>
-                    <button
-                      onClick={() => run(() => deleteProduct({ id: p.id }))}
-                      disabled={isPending}
-                      title="Excluir"
-                      className="rounded-lg p-2 text-red-500 hover:bg-red-50 disabled:opacity-60"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+                    <div className="ml-auto flex items-center gap-1">
+                      <button
+                        onClick={() => startEdit(p)}
+                        title="Editar"
+                        className="rounded-lg p-2 text-candy-brown hover:bg-candy-pink-light"
+                      >
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          run(() =>
+                            toggleProductActive({ id: p.id, active: !p.active }),
+                          )
+                        }
+                        disabled={isPending}
+                        className="rounded-lg border border-candy-pink px-3 py-2 text-sm text-candy-brown hover:bg-candy-pink-light disabled:opacity-60"
+                      >
+                        {p.active ? "Desativar" : "Ativar"}
+                      </button>
+                      <button
+                        onClick={() => run(() => deleteProduct({ id: p.id }))}
+                        disabled={isPending}
+                        title="Excluir"
+                        className="rounded-lg p-2 text-red-500 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </>
                 )}
               </li>

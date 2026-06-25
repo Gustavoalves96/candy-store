@@ -114,11 +114,14 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
 
       <div className="mt-4 flex flex-col gap-2">
         {items.map((row) => (
-          <div key={row.key} className="flex flex-wrap items-center gap-2">
+          <div
+            key={row.key}
+            className="flex flex-col gap-2 rounded-xl border border-candy-pink-light p-2 sm:flex-row sm:items-center sm:border-0 sm:p-0"
+          >
             <select
               value={row.productId}
               onChange={(e) => updateRow(row.key, { productId: e.target.value })}
-              className="min-w-40 flex-1 rounded-xl border border-candy-pink bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-candy-pink"
+              className="w-full rounded-xl border border-candy-pink bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-candy-pink sm:flex-1"
             >
               <option value="">Escolha um produto…</option>
               {products.map((p) => (
@@ -127,29 +130,31 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
                 </option>
               ))}
             </select>
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={row.quantity}
-              onChange={(e) =>
-                updateRow(row.key, {
-                  quantity: Math.max(1, Number(e.target.value) || 1),
-                })
-              }
-              className="w-20 rounded-xl border border-candy-pink px-3 py-2 text-center outline-none focus:ring-2 focus:ring-candy-pink"
-            />
-            <span className="w-24 text-right font-semibold text-candy-brown">
-              {formatBRL(subtotalOf(row))}
-            </span>
-            <button
-              type="button"
-              onClick={() => removeRow(row.key)}
-              title="Remover item"
-              className="rounded-lg p-2 text-red-500 hover:bg-red-50"
-            >
-              <TrashIcon className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={row.quantity}
+                onChange={(e) =>
+                  updateRow(row.key, {
+                    quantity: Math.max(1, Number(e.target.value) || 1),
+                  })
+                }
+                className="w-16 rounded-xl border border-candy-pink px-3 py-2 text-center outline-none focus:ring-2 focus:ring-candy-pink sm:w-20"
+              />
+              <span className="flex-1 text-right font-semibold text-candy-brown sm:w-24 sm:flex-none">
+                {formatBRL(subtotalOf(row))}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeRow(row.key)}
+                title="Remover item"
+                className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
