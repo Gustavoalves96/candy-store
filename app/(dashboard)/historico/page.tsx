@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { formatBRL, formatDateTimeBR } from "@/lib/format";
+import { formatBRL, formatDateBR, formatDateTimeBR } from "@/lib/format";
 import { SalePaidControl } from "@/components/sale-paid-control";
 
 export default async function HistoricoPage() {
@@ -39,6 +39,11 @@ export default async function HistoricoPage() {
                       {formatDateTimeBR(sale.createdAt)} · {qtdItens}{" "}
                       {qtdItens === 1 ? "item" : "itens"}
                     </p>
+                    {sale.deliveryDate && (
+                      <p className="text-sm font-medium text-candy-brown-light">
+                        Encomenda · entrega {formatDateBR(sale.deliveryDate)}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-xl font-bold text-candy-brown">

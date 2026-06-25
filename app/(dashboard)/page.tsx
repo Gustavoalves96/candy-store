@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { formatBRL, formatQty, startOfMonthSP } from "@/lib/format";
+import {
+  formatBRL,
+  formatDateBR,
+  formatQty,
+  startOfMonthSP,
+  startOfTodaySP,
+} from "@/lib/format";
 import {
   SalesIcon,
+  OrderIcon,
   StockIcon,
   HistoryIcon,
   ChartIcon,
@@ -11,25 +18,36 @@ import {
   CalendarIcon,
   AlertIcon,
 } from "@/components/icons";
+import { Greeting } from "@/components/display-name";
 
 export default async function DashboardHome() {
   const session = await auth();
-  const nome = session?.user?.name?.split(" ")[0] ?? "";
+  const fallbackNome = session?.user?.name ?? session?.user?.email ?? "";
 
-  const [vendasEmAberto, vendasMes, vendasPagas, comprasTotal, ingredients] =
-    await Promise.all([
-      db.sale.aggregate({
-        _sum: { total: true },
-        where: { paid: false },
-      }),
-      db.sale.aggregate({
-        _sum: { total: true },
-        where: { createdAt: { gte: startOfMonthSP() } },
-      }),
-      db.sale.aggregate({ _sum: { total: true }, where: { paid: true } }),
-      db.purchase.aggregate({ _sum: { amount: true } }),
-      db.ingredient.findMany({ orderBy: { name: "asc" } }),
-    ]);
+  const [
+    vendasEmAberto,
+    vendasMes,
+    vendasPagas,
+    comprasTotal,
+    ingredients,
+    proximaEncomenda,
+  ] = await Promise.all([
+    db.sale.aggregate({
+      _sum: { total: true },
+      where: { paid: false },
+    }),
+    db.sale.aggregate({
+      _sum: { total: true },
+      where: { createdAt: { gte: startOfMonthSP() } },
+    }),
+    db.sale.aggregate({ _sum: { total: true }, where: { paid: true } }),
+    db.purchase.aggregate({ _sum: { amount: true } }),
+    db.ingredient.findMany({ orderBy: { name: "asc" } }),
+    db.sale.findFirst({
+      where: { deliveryDate: { gte: startOfTodaySP() } },
+      orderBy: { deliveryDate: "asc" },
+    }),
+  ]);
 
   const totalEmAberto = Number(vendasEmAberto._sum.total ?? 0);
   const totalMes = Number(vendasMes._sum.total ?? 0);
@@ -40,8 +58,14 @@ export default async function DashboardHome() {
     (i) => i.quantityCurrent < i.quantityMin,
   );
 
+  const entregaHoje = proximaEncomenda?.deliveryDate
+    ? proximaEncomenda.deliveryDate.getTime() <
+      startOfTodaySP().getTime() + 24 * 60 * 60 * 1000
+    : false;
+
   const atalhos = [
     { href: "/vendas", label: "Registrar venda", Icon: SalesIcon },
+    { href: "/encomendas", label: "Encomendas", Icon: OrderIcon },
     { href: "/estoque", label: "Estoque", Icon: StockIcon },
     { href: "/historico", label: "Histórico", Icon: HistoryIcon },
     { href: "/relatorios", label: "Relatórios", Icon: ChartIcon },
@@ -49,12 +73,41 @@ export default async function DashboardHome() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-bold text-candy-brown">
-        Olá{nome ? `, ${nome}` : ""}!
-      </h1>
+      <Greeting fallback={fallbackNome} />
       <p className="mt-1 text-candy-brown-light">
         Aqui está o resumo da sua loja.
       </p>
+
+      {/* Proxima encomenda */}
+      {proximaEncomenda?.deliveryDate && (
+        <Link
+          href="/encomendas"
+          className={`mt-6 block rounded-2xl border-2 p-4 transition-colors ${
+            entregaHoje
+              ? "border-amber-300 bg-amber-50 hover:bg-amber-100"
+              : "border-candy-pink bg-candy-pink-light hover:brightness-95"
+          }`}
+        >
+          <div
+            className={`flex items-center gap-3 ${
+              entregaHoje ? "text-amber-700" : "text-candy-brown"
+            }`}
+          >
+            <OrderIcon className="h-7 w-7 shrink-0" />
+            <div>
+              <p className="font-semibold">
+                Próxima encomenda{entregaHoje ? " — para hoje!" : ""}
+              </p>
+              <p className="text-sm">
+                {proximaEncomenda.customerName} · entrega{" "}
+                {formatDateBR(proximaEncomenda.deliveryDate)} ·{" "}
+                {formatBRL(proximaEncomenda.total)} ·{" "}
+                {proximaEncomenda.paid ? "Pago" : "Em aberto"}
+              </p>
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Resumo financeiro */}
       <div className="mt-6 grid gap-4 sm:grid-cols-3">

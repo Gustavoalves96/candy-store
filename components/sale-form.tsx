@@ -8,10 +8,18 @@ import { PlusIcon, TrashIcon } from "@/components/icons";
 type ProductOption = { id: string; name: string; price: number };
 type ItemRow = { key: number; productId: string; quantity: number };
 
-export function SaleForm({ products }: { products: ProductOption[] }) {
+export function SaleForm({
+  products,
+  mode = "venda",
+}: {
+  products: ProductOption[];
+  mode?: "venda" | "encomenda";
+}) {
+  const isEncomenda = mode === "encomenda";
   const [isPending, startTransition] = useTransition();
   const [customerName, setCustomerName] = useState("");
   const [paid, setPaid] = useState(true);
+  const [deliveryDate, setDeliveryDate] = useState("");
   const [items, setItems] = useState<ItemRow[]>([
     { key: 1, productId: "", quantity: 1 },
   ]);
@@ -57,16 +65,20 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
     }
     const chosen = items.filter((r) => r.productId !== "");
     if (chosen.length === 0) {
-      return setError("Adicione pelo menos um item à venda.");
+      return setError("Adicione pelo menos um item.");
     }
     if (chosen.some((r) => r.quantity < 1)) {
       return setError("A quantidade de cada item deve ser pelo menos 1.");
+    }
+    if (isEncomenda && !deliveryDate) {
+      return setError("Informe a data de entrega da encomenda.");
     }
 
     startTransition(async () => {
       const result = await createSale({
         customerName,
         paid,
+        deliveryDate: isEncomenda ? deliveryDate : null,
         items: chosen.map((r) => ({
           productId: r.productId,
           quantity: r.quantity,
@@ -77,7 +89,12 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
         setItems([{ key: 1, productId: "", quantity: 1 }]);
         setNextKey(2);
         setPaid(true);
-        setSuccess("Venda registrada com sucesso!");
+        setDeliveryDate("");
+        setSuccess(
+          isEncomenda
+            ? "Encomenda registrada com sucesso!"
+            : "Venda registrada com sucesso!",
+        );
       } else {
         setError(result.error);
       }
@@ -142,6 +159,20 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
           </button>
         </div>
       </div>
+
+      {isEncomenda && (
+        <label className="mt-4 flex flex-col gap-1">
+          <span className="text-sm font-medium text-candy-brown">
+            Data de entrega
+          </span>
+          <input
+            type="date"
+            value={deliveryDate}
+            onChange={(e) => setDeliveryDate(e.target.value)}
+            className="rounded-xl border border-candy-pink px-3 py-2 outline-none focus:ring-2 focus:ring-candy-pink"
+          />
+        </label>
+      )}
 
       <div className="mt-4 flex flex-col gap-2">
         {items.map((row) => (
@@ -222,7 +253,11 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
         disabled={isPending}
         className="mt-4 w-full rounded-xl bg-candy-brown px-4 py-3 text-lg font-semibold text-white transition-colors hover:bg-candy-brown-light disabled:opacity-60"
       >
-        {isPending ? "Registrando…" : "Registrar venda"}
+        {isPending
+          ? "Registrando…"
+          : isEncomenda
+            ? "Registrar encomenda"
+            : "Registrar venda"}
       </button>
     </form>
   );

@@ -57,6 +57,7 @@ model Sale {
   customerName String
   total        Decimal    @db.Decimal(10, 2)
   paid         Boolean    @default(false) // true = pago, false = em aberto
+  deliveryDate DateTime? // se preenchido, e uma encomenda (data de entrega)
   createdAt    DateTime   @default(now())
   items        SaleItem[]
 }

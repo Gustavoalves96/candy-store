@@ -6,6 +6,7 @@ import type { SVGProps } from "react";
 import {
   HomeIcon,
   SalesIcon,
+  OrderIcon,
   StockIcon,
   HistoryIcon,
   ChartIcon,
@@ -18,6 +19,7 @@ const links: {
 }[] = [
   { href: "/", label: "Painel", Icon: HomeIcon },
   { href: "/vendas", label: "Vendas", Icon: SalesIcon },
+  { href: "/encomendas", label: "Encomendas", Icon: OrderIcon },
   { href: "/historico", label: "Histórico", Icon: HistoryIcon },
   { href: "/estoque", label: "Estoque", Icon: StockIcon },
   { href: "/relatorios", label: "Relatórios", Icon: ChartIcon },
@@ -66,13 +68,13 @@ export function MobileNav() {
           <Link
             key={href}
             href={href}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors ${
+            className={`flex flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-center text-[10px] font-medium leading-tight transition-colors ${
               active
                 ? "bg-candy-pink-light text-candy-brown"
                 : "text-candy-brown-light"
             }`}
           >
-            <Icon className="h-6 w-6" />
+            <Icon className="h-5 w-5" />
             <span>{label}</span>
           </Link>
         );

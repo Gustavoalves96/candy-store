@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
+import { UserName } from "@/components/display-name";
 import { LogoutIcon } from "@/components/icons";
 
 export default async function DashboardLayout({
@@ -71,7 +72,7 @@ export default async function DashboardLayout({
 
         <div className="mt-auto flex flex-col gap-2 border-t border-candy-pink-light pt-4">
           <p className="px-1 text-sm text-candy-brown-light">
-            {session.user.name ?? session.user.email}
+            <UserName fallback={session.user.name ?? session.user.email ?? ""} />
           </p>
           <form action={sair}>
             <button

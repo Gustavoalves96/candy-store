@@ -9,6 +9,10 @@ export type SaleResult = { ok: true } | { ok: false; error: string };
 const saleSchema = z.object({
   customerName: z.string().trim().min(1, "Informe o nome do cliente."),
   paid: z.boolean(),
+  deliveryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de entrega inválida.")
+    .nullish(),
   items: z
     .array(
       z.object({
@@ -25,13 +29,14 @@ const saleSchema = z.object({
 export async function createSale(input: {
   customerName: string;
   paid: boolean;
+  deliveryDate?: string | null;
   items: { productId: string; quantity: number }[];
 }): Promise<SaleResult> {
   const parsed = saleSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
-  const { customerName, paid, items } = parsed.data;
+  const { customerName, paid, deliveryDate, items } = parsed.data;
 
   // Busca os precos atuais no banco — nunca confia no valor vindo do cliente.
   const ids = [...new Set(items.map((i) => i.productId))];
@@ -69,11 +74,16 @@ export async function createSale(input: {
       customerName,
       total: totalCents / 100,
       paid,
+      // Guarda ao meio-dia UTC para nao "voltar um dia" ao exibir no fuso de SP.
+      deliveryDate: deliveryDate
+        ? new Date(`${deliveryDate}T12:00:00.000Z`)
+        : null,
       items: { create: saleItems },
     },
   });
 
   revalidatePath("/vendas");
+  revalidatePath("/encomendas");
   revalidatePath("/historico");
   revalidatePath("/relatorios");
   revalidatePath("/");
@@ -91,6 +101,7 @@ export async function setSalePaid(input: {
   });
 
   revalidatePath("/vendas");
+  revalidatePath("/encomendas");
   revalidatePath("/historico");
   revalidatePath("/relatorios");
   revalidatePath("/");
