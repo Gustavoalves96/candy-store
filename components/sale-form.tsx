@@ -11,6 +11,7 @@ type ItemRow = { key: number; productId: string; quantity: number };
 export function SaleForm({ products }: { products: ProductOption[] }) {
   const [isPending, startTransition] = useTransition();
   const [customerName, setCustomerName] = useState("");
+  const [paid, setPaid] = useState(true);
   const [items, setItems] = useState<ItemRow[]>([
     { key: 1, productId: "", quantity: 1 },
   ]);
@@ -65,6 +66,7 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
     startTransition(async () => {
       const result = await createSale({
         customerName,
+        paid,
         items: chosen.map((r) => ({
           productId: r.productId,
           quantity: r.quantity,
@@ -74,6 +76,7 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
         setCustomerName("");
         setItems([{ key: 1, productId: "", quantity: 1 }]);
         setNextKey(2);
+        setPaid(true);
         setSuccess("Venda registrada com sucesso!");
       } else {
         setError(result.error);
@@ -111,6 +114,34 @@ export function SaleForm({ products }: { products: ProductOption[] }) {
           className="rounded-xl border border-candy-pink px-3 py-2 outline-none focus:ring-2 focus:ring-candy-pink"
         />
       </label>
+
+      <div className="mt-4">
+        <span className="text-sm font-medium text-candy-brown">Pagamento</span>
+        <div className="mt-1 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setPaid(true)}
+            className={`flex-1 rounded-xl border px-4 py-2 font-medium transition-colors ${
+              paid
+                ? "border-green-600 bg-green-600 text-white"
+                : "border-candy-pink text-candy-brown hover:bg-candy-pink-light"
+            }`}
+          >
+            Pago
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaid(false)}
+            className={`flex-1 rounded-xl border px-4 py-2 font-medium transition-colors ${
+              !paid
+                ? "border-amber-500 bg-amber-500 text-white"
+                : "border-candy-pink text-candy-brown hover:bg-candy-pink-light"
+            }`}
+          >
+            Não pago
+          </button>
+        </div>
+      </div>
 
       <div className="mt-4 flex flex-col gap-2">
         {items.map((row) => (

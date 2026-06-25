@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { formatBRL, formatDateTimeBR } from "@/lib/format";
+import { SalePaidControl } from "@/components/sale-paid-control";
 
 export default async function HistoricoPage() {
   const sales = await db.sale.findMany({
@@ -39,9 +40,12 @@ export default async function HistoricoPage() {
                       {qtdItens === 1 ? "item" : "itens"}
                     </p>
                   </div>
-                  <span className="text-xl font-bold text-candy-brown">
-                    {formatBRL(sale.total)}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xl font-bold text-candy-brown">
+                      {formatBRL(sale.total)}
+                    </span>
+                    <SalePaidControl id={sale.id} paid={sale.paid} />
+                  </div>
                 </div>
 
                 <ul className="mt-3 flex flex-col gap-1">

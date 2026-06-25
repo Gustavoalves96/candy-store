@@ -8,6 +8,7 @@ export type SaleResult = { ok: true } | { ok: false; error: string };
 
 const saleSchema = z.object({
   customerName: z.string().trim().min(1, "Informe o nome do cliente."),
+  paid: z.boolean(),
   items: z
     .array(
       z.object({
@@ -23,13 +24,14 @@ const saleSchema = z.object({
 
 export async function createSale(input: {
   customerName: string;
+  paid: boolean;
   items: { productId: string; quantity: number }[];
 }): Promise<SaleResult> {
   const parsed = saleSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
-  const { customerName, items } = parsed.data;
+  const { customerName, paid, items } = parsed.data;
 
   // Busca os precos atuais no banco — nunca confia no valor vindo do cliente.
   const ids = [...new Set(items.map((i) => i.productId))];
@@ -66,11 +68,31 @@ export async function createSale(input: {
     data: {
       customerName,
       total: totalCents / 100,
+      paid,
       items: { create: saleItems },
     },
   });
 
   revalidatePath("/vendas");
+  revalidatePath("/historico");
+  revalidatePath("/relatorios");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+// Marca uma venda como paga ou em aberto (clicando no status do historico).
+export async function setSalePaid(input: {
+  id: string;
+  paid: boolean;
+}): Promise<SaleResult> {
+  await db.sale.update({
+    where: { id: input.id },
+    data: { paid: input.paid },
+  });
+
+  revalidatePath("/vendas");
+  revalidatePath("/historico");
+  revalidatePath("/relatorios");
   revalidatePath("/");
   return { ok: true };
 }

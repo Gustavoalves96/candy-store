@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { formatBRL, formatQty, startOfMonthSP, startOfTodaySP } from "@/lib/format";
+import { formatBRL, formatQty, startOfMonthSP } from "@/lib/format";
 import {
   SalesIcon,
   StockIcon,
@@ -16,25 +16,25 @@ export default async function DashboardHome() {
   const session = await auth();
   const nome = session?.user?.name?.split(" ")[0] ?? "";
 
-  const [vendasHoje, vendasMes, vendasTotal, comprasTotal, ingredients] =
+  const [vendasEmAberto, vendasMes, vendasPagas, comprasTotal, ingredients] =
     await Promise.all([
       db.sale.aggregate({
         _sum: { total: true },
-        where: { createdAt: { gte: startOfTodaySP() } },
+        where: { paid: false },
       }),
       db.sale.aggregate({
         _sum: { total: true },
         where: { createdAt: { gte: startOfMonthSP() } },
       }),
-      db.sale.aggregate({ _sum: { total: true } }),
+      db.sale.aggregate({ _sum: { total: true }, where: { paid: true } }),
       db.purchase.aggregate({ _sum: { amount: true } }),
       db.ingredient.findMany({ orderBy: { name: "asc" } }),
     ]);
 
-  const totalHoje = Number(vendasHoje._sum.total ?? 0);
+  const totalEmAberto = Number(vendasEmAberto._sum.total ?? 0);
   const totalMes = Number(vendasMes._sum.total ?? 0);
   const saldo =
-    Number(vendasTotal._sum.total ?? 0) - Number(comprasTotal._sum.amount ?? 0);
+    Number(vendasPagas._sum.total ?? 0) - Number(comprasTotal._sum.amount ?? 0);
 
   const faltando = ingredients.filter(
     (i) => i.quantityCurrent < i.quantityMin,
@@ -58,11 +58,11 @@ export default async function DashboardHome() {
 
       {/* Resumo financeiro */}
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border-2 border-candy-pink bg-white p-5">
-          <MoneyIcon className="h-7 w-7 text-candy-brown-light" />
-          <p className="mt-2 text-sm text-candy-brown-light">Vendas de hoje</p>
-          <p className="text-2xl font-bold text-candy-brown">
-            {formatBRL(totalHoje)}
+        <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+          <MoneyIcon className="h-7 w-7 text-amber-600" />
+          <p className="mt-2 text-sm text-amber-700">Vendas em aberto</p>
+          <p className="text-2xl font-bold text-amber-700">
+            {formatBRL(totalEmAberto)}
           </p>
         </div>
         <div className="rounded-2xl border-2 border-candy-pink bg-white p-5">

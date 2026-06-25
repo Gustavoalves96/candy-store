@@ -56,6 +56,7 @@ model Sale {
   id           String     @id @default(cuid())
   customerName String
   total        Decimal    @db.Decimal(10, 2)
+  paid         Boolean    @default(false) // true = pago, false = em aberto
   createdAt    DateTime   @default(now())
   items        SaleItem[]
 }
