@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍬 Candy Store — Sistema de Estoque e Vendas
 
-## Getting Started
+Aplicação web full-stack para gerenciar uma confeitaria artesanal: controle de
+**vendas**, **encomendas**, **estoque de ingredientes** e **relatórios**
+financeiros. Pensada para ser simples e intuitiva, com foco em uso no celular.
 
-First, run the development server:
+> Projeto de portfólio. Interface, valores (R$) e textos em **português (pt-BR)**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Funcionalidades
+
+- **Autenticação** por e-mail e senha (Auth.js / NextAuth v5), com rotas
+  protegidas e senha protegida com bcrypt.
+- **Produtos**: cadastro com preço editável e ativar/desativar.
+- **Vendas**: registro com vários itens, **total calculado no servidor**,
+  status de pagamento (**pago / em aberto**) e histórico.
+- **Encomendas**: vendas com **data de entrega**, listadas por proximidade, com
+  alerta da próxima entrega no painel.
+- **Estoque**: ingredientes com unidade, quantidade mínima e **custo por
+  unidade**; botões de "comprei" / "usei"; **alerta visual** quando abaixo do
+  mínimo; **total em estoque**.
+- **Relatórios**: comparativo entre vendas recebidas, valores em aberto e gasto
+  em ingredientes (com histórico de compras permanente).
+- **Painel** com resumo financeiro, alertas de estoque e atalhos.
+- **Responsivo** (mobile-first): menu lateral no desktop e barra inferior no
+  celular.
+
+## 🧱 Stack
+
+- **Next.js** (App Router) + **TypeScript** + **React 19**
+- **Tailwind CSS v4** (tema rosa/marrom via `@theme`)
+- **Prisma 7** (driver adapter `pg`) + **PostgreSQL** (Neon)
+- **Auth.js / NextAuth v5** (Credentials)
+- **Zod** para validação · **bcryptjs** para hash de senha
+- Deploy na **Vercel**
+
+## 📁 Estrutura
+
+```
+app/
+  (auth)/login/          # tela de login
+  (dashboard)/           # área protegida
+    page.tsx             # painel inicial
+    vendas/ encomendas/ historico/ estoque/ relatorios/ produtos/
+  api/auth/[...nextauth] # rotas do Auth.js
+components/              # formulários, menu, ícones SVG, etc.
+lib/                     # cliente Prisma, formatação, auth helpers
+prisma/                  # schema e migrations
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Rodando localmente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Pré-requisitos: Node 20+ e um banco PostgreSQL (ex.: um projeto gratuito na
+[Neon](https://neon.tech)).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 1. Instalar dependências
+npm install
 
-## Learn More
+# 2. Configurar variáveis de ambiente
+cp .env.example .env
+# edite o .env com a sua DATABASE_URL e gere o AUTH_SECRET:
+npx auth secret
 
-To learn more about Next.js, take a look at the following resources:
+# 3. Criar as tabelas no banco
+npx prisma migrate dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 4. Criar o usuário inicial (lê SEED_NAME / SEED_EMAIL / SEED_PASSWORD do .env)
+npm run seed
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 5. Subir em desenvolvimento
+npm run dev
+```
 
-## Deploy on Vercel
+Acesse http://localhost:3000 e faça login com o usuário do seed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🗄️ Modelo de dados (resumo)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `User` — login.
+- `Product` — catálogo de doces com preço.
+- `Sale` / `SaleItem` — vendas e seus itens; `Sale` tem `paid` e
+  `deliveryDate` (quando é encomenda).
+- `Ingredient` — estoque, com `unitCost`.
+- `Purchase` — histórico permanente de compras de ingredientes (alimenta os
+  relatórios sem diminuir quando o estoque é consumido).
+
+## 📜 Scripts
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Ambiente de desenvolvimento |
+| `npm run build` | `prisma generate` + build de produção |
+| `npm run start` | Servidor de produção |
+| `npm run lint` | ESLint |
+| `npm run seed` | Cria o usuário inicial |
