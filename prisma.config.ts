@@ -11,6 +11,9 @@ export default defineConfig({
   datasource: {
     // Usado pelo Prisma Migrate (CLI). Em runtime, o PrismaClient usa o
     // driver adapter configurado em lib/db.ts.
-    url: process.env["DATABASE_URL"],
+    // Migrations precisam da conexao DIRETA (sem pooler): o PgBouncer da Neon
+    // nao suporta os advisory locks / DDL em transacao que o Migrate usa.
+    // Em producao defina DIRECT_URL com a string "unpooled" da Neon.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

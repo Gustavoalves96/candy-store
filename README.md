@@ -88,7 +88,7 @@ Acesse http://localhost:3000 e faça login com o usuário do seed.
 | Comando | Descrição |
 |---|---|
 | `npm run dev` | Ambiente de desenvolvimento |
-| `npm run build` | `prisma generate` + build de produção |
+| `npm run build` | `prisma generate` + `prisma migrate deploy` + build de produção |
 | `npm run start` | Servidor de produção |
 | `npm run lint` | ESLint |
 | `npm run seed` | Cria o usuário inicial |
